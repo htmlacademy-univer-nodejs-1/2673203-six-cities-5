@@ -17,7 +17,6 @@
     "ts": "ts-node",
     "mock:server": "json-server ./src/mocks/mock-server-data.json --port 3123",
     "cli": "npm run build && node ./dist/main.cli.js",
-    "cli:dev": "ts-node --esm src/main.cli.ts",
     "cli:help": "npm run cli:dev -- --help"
   },
   "devDependencies": {

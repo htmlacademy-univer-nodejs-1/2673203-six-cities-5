@@ -6,6 +6,8 @@ import { User, UserType } from '../../../types/index.js';
 // eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
 export interface UserEntity extends defaultClasses.Base {}
 
+export const DEFAULT_AVATAR = 'default-avatar.png';
+
 @modelOptions({
   schemaOptions: {
     collection: 'users'
@@ -20,8 +22,8 @@ export class UserEntity extends defaultClasses.TimeStamps implements User {
   @prop({ unique: true, required: true })
   public email!: string;
 
-  @prop({ required: false })
-  public avatar?: string;
+  @prop({ required: false, default: DEFAULT_AVATAR })
+  public avatar!: string;
 
   @prop({ required: true })
   public password!: string;
@@ -34,7 +36,6 @@ export class UserEntity extends defaultClasses.TimeStamps implements User {
 
     this.name = userData.name;
     this.email = userData.email;
-    this.avatar = userData.avatar;
     this.type = userData.type;
   }
 

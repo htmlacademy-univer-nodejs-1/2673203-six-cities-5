@@ -2,7 +2,9 @@ import { nanoid } from 'nanoid';
 import multer, { diskStorage } from 'multer';
 import { extension } from 'mime-types';
 import { Request, Response, NextFunction } from 'express';
-import { Middleware } from './middleware.interface';
+import { Middleware } from './middleware.interface.js';
+import { StatusCodes } from 'http-status-codes';
+import { HttpError } from '../errors/http-error.js';
 
 export class UploadFileMiddleware implements Middleware {
   constructor(
@@ -20,7 +22,20 @@ export class UploadFileMiddleware implements Middleware {
       }
     });
 
-    const uploadSingle = multer({ storage }).single(this.fieldName);
+    const uploadSingle = multer({
+      storage,
+      fileFilter: (_req, file, cb) => {
+        if (!['image/png', 'image/jpeg'].includes(file.mimetype)) {
+          cb(new HttpError(
+            StatusCodes.BAD_REQUEST,
+            'Avatar must be jpg or png',
+            'UploadFileMiddleware'
+          ));
+          return;
+        }
+        cb(null, true);
+      }
+    }).single(this.fieldName);
     uploadSingle(req, res, next);
   }
 }

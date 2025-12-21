@@ -24,10 +24,20 @@ export class CommentController extends BaseController {
   constructor(
     @inject(Component.Logger) logger: Logger,
     @inject(Component.CommentService) private readonly commentService: CommentService,
-    @inject(Component.OfferService) private readonly offerService: OfferService,
+    @inject(Component.OfferService) private readonly offerService: OfferService
   ) {
     super(logger);
 
+    this.addRoute({
+      path: '/:offerId/comments',
+      method: HttpMethod.Get,
+      handler: this.index,
+      middlewares: [
+        new PrivateRouteMiddleware(),
+        new ValidateObjectIdMiddleware('offerId'),
+        new DocumentExistsMiddleware(this.offerService, 'Offer', 'offerId')
+      ]
+    });
 
     this.addRoute({
       path: '/:offerId/comments',
@@ -42,37 +52,25 @@ export class CommentController extends BaseController {
     });
   }
 
+  public async create(req: Request, res: Response): Promise<void> {
+    const userId = req.tokenPayload?.id;
+    if (!userId) {
+      throw new HttpError(StatusCodes.UNAUTHORIZED, 'Unauthorized', 'CommentController');
+    }
+
+    const dto = { ...req.body, userId };
+    const comment = await this.commentService.create(dto);
+    this.created(res, fillDTO(CommentRdo, comment));
+  }
+
   public async index(req: Request, res: Response): Promise<void> {
-    const tokenPayload = req.tokenPayload;
-    if (!tokenPayload?.id) {
+    const userId = req.tokenPayload?.id;
+    if (!userId) {
       throw new HttpError(StatusCodes.UNAUTHORIZED, 'Unauthorized', 'CommentController');
     }
 
     const { offerId } = req.params;
     const comments = await this.commentService.findByOfferId(offerId);
-
     this.ok(res, comments);
-  }
-
-
-  public async create(req: Request, res: Response): Promise<void> {
-    const tokenPayload = req.tokenPayload;
-    if (!tokenPayload?.id) {
-      throw new HttpError(StatusCodes.UNAUTHORIZED, 'Unauthorized', 'CommentController');
-    }
-
-    const { body } = req;
-
-    if (!await this.offerService.exists(body.offerId)) {
-      throw new HttpError(
-        StatusCodes.NOT_FOUND,
-        `Offer with id ${body.offerId} not found.`,
-        'CommentController'
-      );
-    }
-
-    const comment = await this.commentService.create({ ...body, userId: tokenPayload.id });
-    await this.offerService.incrementCommentCount(body.offerId);
-    this.created(res, fillDTO(CommentRdo, comment));
   }
 }

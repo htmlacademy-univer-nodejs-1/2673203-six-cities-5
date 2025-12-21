@@ -1,5 +1,5 @@
-import { Expose, Type } from 'class-transformer';
-import { UserRdo } from '../../user/rdo/user.rdo.js';
+import { Expose } from 'class-transformer';
+import { City } from '../../../../types/index.js';
 
 export class OfferRdo {
   @Expose()
@@ -18,15 +18,14 @@ export class OfferRdo {
   public isPremium: boolean;
 
   @Expose()
-  public city: string;
+  public city: City;
 
-  @Expose()
-  public image: string;
+  @Expose({ name: 'previewImage' })
+  public previewImage: string;
 
   @Expose()
   public favorite = false;
 
-  @Expose({ name: 'userId' })
-  @Type(() => UserRdo)
-  public user: UserRdo;
+  @Expose()
+  public author!: string;
 }
