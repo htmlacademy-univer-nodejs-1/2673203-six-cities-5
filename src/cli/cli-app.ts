@@ -44,7 +44,6 @@ export class CLIApplication {
       if (error instanceof Error) {
         console.error(error.message);
       }
-      // Вместо process.exit() бросаем ошибку
       throw new Error(`Command execution failed: ${commandName}`);
     }
   }

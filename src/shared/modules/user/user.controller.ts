@@ -15,6 +15,9 @@ import { UploadFileMiddleware } from '../../libs/rest/middleware/upload-file.mid
 import { AuthMiddleware } from '../../libs/rest/middleware/auth.middleware.js';
 import { AuthService } from '../auth/index.js';
 import { LoggedUserRdo } from './rdo/logged-user.rdo.js';
+import { ValidateDtoMiddleware } from '../../libs/rest/middleware/validate-dto.middleware.js';
+import { CreateUserDto } from './dto/create-user.dto.js';
+import { LoginUserDto } from './dto/login-user.dto.js';
 
 @injectable()
 export class UserController extends BaseController {
@@ -27,18 +30,26 @@ export class UserController extends BaseController {
     super(logger);
     this.logger.info('Register routes for UserController…');
 
-    this.addRoute({ path: '/register', method: HttpMethod.Post, handler: this.register });
+    this.addRoute({
+      path: '/register',
+      method: HttpMethod.Post,
+      handler: this.register,
+      middlewares: [
+        new ValidateDtoMiddleware(CreateUserDto)
+      ]
+    });
     this.addRoute({
       path: '/login',
       method: HttpMethod.Post,
       handler: this.login,
+      middlewares: [new ValidateDtoMiddleware(LoginUserDto)]
     });
     this.addRoute({
       path: '/avatar',
       method: HttpMethod.Post,
       handler: this.uploadAvatar,
       middlewares: [
-        new AuthMiddleware(),
+        new AuthMiddleware(this.configService),
         new UploadFileMiddleware(
           this.configService.get('UPLOAD_DIRECTORY'),
           'avatar'
@@ -49,13 +60,13 @@ export class UserController extends BaseController {
       path: '/me',
       method: HttpMethod.Get,
       handler: this.checkAuthenticate,
-      middlewares: [new AuthMiddleware()],
+      middlewares: [new AuthMiddleware(this.configService)],
     });
     this.addRoute({
       path: '/logout',
       method: HttpMethod.Post,
       handler: this.logout,
-      middlewares: [new AuthMiddleware()],
+      middlewares: [new AuthMiddleware(this.configService)],
     });
   }
 
@@ -85,6 +96,7 @@ export class UserController extends BaseController {
   }
 
   public async checkAuthenticate(req: Request, res: Response) {
+    console.log('Token payload:', req.tokenPayload);
     const email = req.tokenPayload?.email;
     if (!email) {
       throw new HttpError(StatusCodes.UNAUTHORIZED, 'Unauthorized', 'UserController');
@@ -100,7 +112,7 @@ export class UserController extends BaseController {
       );
     }
 
-    this.ok(res, fillDTO(LoggedUserRdo, foundedUser));
+    this.ok(res, fillDTO(UserRdo, foundedUser));
   }
 
   public async logout(_req: Request, res: Response): Promise<void> {

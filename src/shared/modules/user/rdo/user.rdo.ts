@@ -1,15 +1,17 @@
 import { Expose } from 'class-transformer';
+import { UserType } from '../../../../types/user.js';
 
 export class UserRdo {
   @Expose()
-  public email: string ;
+  public name: string;
 
   @Expose()
-  public avatarPath: string;
+  public email: string;
 
   @Expose()
-  public firstname: string;
+  public avatar?: string;
 
   @Expose()
-  public lastname: string;
+  public type: UserType;
 }
+

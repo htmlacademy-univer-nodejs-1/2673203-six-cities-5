@@ -18,8 +18,4 @@ export class CreateCommentDto {
   @IsString()
   @IsNotEmpty()
   public offerId!: string;
-
-  @IsString()
-  @IsNotEmpty()
-  public userId!: string;
 }

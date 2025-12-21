@@ -4,13 +4,14 @@ import { BaseController, HttpError, HttpMethod, PrivateRouteMiddleware } from '.
 import { Logger } from '../../libs/logger/index.js';
 import { City, Component } from '../../../types/index.js';
 import { OfferService } from './offer.service.interface.js';
-import { OfferRdo } from './index.js';
+import { CreateOfferDto, OfferRdo } from './index.js';
 import { fillDTO } from '../../helpers/index.js';
 import { ValidateObjectIdMiddleware } from '../../libs/rest/middleware/validate-objectid.middleware.js';
 import { DocumentExistsMiddleware } from '../../libs/rest/middleware/document-exist.middleware.js';
 import { CreateOfferRequest } from './type/create-offer-request.type.js';
 import { FavoriteService } from '../favorite/favorite.service.interface.js';
 import { StatusCodes } from 'http-status-codes';
+import { ValidateDtoMiddleware } from '../../libs/rest/middleware/validate-dto.middleware.js';
 
 @injectable()
 export class OfferController extends BaseController {
@@ -34,7 +35,15 @@ export class OfferController extends BaseController {
       ]
     });
     this.addRoute({ path: '/', method: HttpMethod.Get, handler: this.index });
-    this.addRoute({ path: '/', method: HttpMethod.Post, handler: this.create });
+    this.addRoute({
+      path: '/',
+      method: HttpMethod.Post,
+      handler: this.create,
+      middlewares: [
+        new PrivateRouteMiddleware(),
+        new ValidateDtoMiddleware(CreateOfferDto)
+      ]
+    });
     this.addRoute({
       path: '/:offerId',
       method: HttpMethod.Patch,
@@ -115,3 +124,4 @@ export class OfferController extends BaseController {
     this.ok(res, fillDTO(OfferRdo, offers));
   }
 }
+

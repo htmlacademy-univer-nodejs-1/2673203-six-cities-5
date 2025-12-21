@@ -58,11 +58,21 @@ npm run ts -- <Путь к модулю с ts-кодом>
 
 Пакет `ts-node` позволяет выполнить TS-код в Node.js без предварительной компиляции. Используется только на этапе разработки.
 
-#### Запустить проект
+#### Запуск базы данных (MongoDB)
+
+Для быстрого разворачивания MongoDB используется Docker Compose.
 
 ```bash
-npm start
+docker-compose up -d
 ```
+
+#### Запуск проекта
+
+1. Запустить MongoDB через Docker:
+   docker-compose up -d
+2. Создать файл .env на основе .env.example
+3. Установить зависимости: npm install
+4. Запустить сервер: npm start
 
 В процессе запуска проекта будет выполнен процесс «Сборки проекта» и запуска результирующего кода.
 
@@ -85,6 +95,18 @@ npn run json-server
 ### Файл `Contributing.md`
 
 Советы и инструкции по внесению изменений в учебный репозиторий.
+
+## Переменные окружения
+
+DB_HOST=localhost — адрес MongoDB  
+DB_PORT=27017 — порт MongoDB  
+DB_NAME=six-cities — имя базы данных  
+DB_USER=admin — пользователь MongoDB  
+DB_PASSWORD=test — пароль MongoDB  
+PORT=4000 — порт HTTP-сервера  
+SALT=10 — количество раундов для хеширования паролей  
+JWT_SECRET=your_jwt_secret_here — секрет для подписи JWT  
+UPLOAD_DIRECTORY=./uploads — директория для загрузки файлов
 
 ### Остальное
 

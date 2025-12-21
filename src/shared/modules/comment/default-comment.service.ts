@@ -1,10 +1,10 @@
-import { inject, injectable } from 'inversify';
-import { Component } from '../../../types/component.enum.js';
-import { DocumentType, types } from '@typegoose/typegoose';
-import { Logger } from 'pino';
-import { OfferService } from '../offer/offer.service.interface.js';
-import { CommentEntity } from './comment.entity.js';
+import { injectable, inject } from 'inversify';
 import { CommentService } from './comment.service.interface.js';
+import { DocumentType, types } from '@typegoose/typegoose';
+import { CommentEntity } from './comment.entity.js';
+import { Component } from '../../../types/index.js';
+import { Logger } from '../../libs/logger/index.js';
+import { OfferService } from '../offer/offer.service.interface.js';
 import { CreateCommentDto } from './dto/create-comment.dto.js';
 
 @injectable()
@@ -15,12 +15,14 @@ export class DefaultCommentService implements CommentService {
     @inject(Component.OfferService) private readonly offerService: OfferService
   ) {}
 
-  public async create(dto: CreateCommentDto): Promise<DocumentType<CommentEntity>> {
+  public async create(dto: CreateCommentDto & { userId: string }): Promise<DocumentType<CommentEntity>> {
     const comment = await this.commentModel.create(dto);
     this.logger.info(`New comment created for offer ${dto.offerId}`);
 
-    await this.offerService.incrementCommentCount(dto.offerId);
-    await this.offerService.updateRating(dto.offerId);
+    await Promise.all([
+      this.offerService.incrementCommentCount(dto.offerId),
+      this.offerService.updateRating(dto.offerId)
+    ]);
 
     return comment.populate('userId');
   }
@@ -35,10 +37,7 @@ export class DefaultCommentService implements CommentService {
   }
 
   public async deleteByOfferId(offerId: string): Promise<number> {
-    const result = await this.commentModel
-      .deleteMany({offerId})
-      .exec();
-
+    const result = await this.commentModel.deleteMany({ offerId }).exec();
     return result.deletedCount;
   }
 
